@@ -1,3 +1,6 @@
+cmake_minimum_required(VERSION 3.15)
+project(zenohrs VERSION 0.1.0)
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -8,9 +11,6 @@ FetchContent_Declare(
 
 # Set any global configuration variables such as `Rust_TOOLCHAIN` before this line!
 FetchContent_MakeAvailable(Corrosion)
-
-cmake_minimum_required(VERSION 3.15)
-project(test_project VERSION 0.1.0)
 
 corrosion_import_crate(MANIFEST_PATH Cargo.toml)
 corrosion_add_cxxbridge(zenohlib
