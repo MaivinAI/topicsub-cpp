@@ -10,5 +10,5 @@ make
 cd ../out
 cp ../build/libzenohlib.a ./
 cp ../build/libzenohrs.a ./
-cp -r ../build/corrosion_generated/cxxbridge/zenohlib/include ./include
+cp -r ../build/corrosion_generated/cxxbridge/zenohlib/include/ ./include/
 ```
