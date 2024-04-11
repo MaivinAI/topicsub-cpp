@@ -1,0 +1,25 @@
+[package]
+name = "zenohrs"
+description = "CDR Rust"
+license = "AGPL-3.0"
+version = "1.1.0"
+edition = "2021"
+
+[profile.release]
+opt-level = 3
+lto = true
+
+[lib]
+name = "zenohrs"
+crate-type = ["staticlib"]
+
+[dependencies]
+#zenoh-ros-type = { git = "https://github.com/MaivinAI/zenoh-ros-type", branch = "RVN-185"}
+zenoh = "0.10.1-rc"
+cdr = "0.2.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_derive = "1.0.147"
+cxx = "1.0"
+
+[build-dependencies]
+cxx-build = "1.0"
