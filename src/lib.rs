@@ -1,6 +1,7 @@
 use crate::ffi::CameraInfo;
 use crate::ffi::CompressedImage;
 use crate::ffi::DeepviewDMABuf;
+use crate::ffi::DetectBoxes2D;
 use crate::ffi::FoxgloveImageAnnotations;
 use crate::ffi::PointCloud2;
 use crate::ffi::Response;
@@ -173,6 +174,34 @@ mod ffi {
         pub do_rectify: bool,
     }
 
+    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    pub struct DetectBoxes2D {
+        pub header: Header,
+        pub input_timestamp: Time,
+        pub model_time: Time,
+        pub output_time: Time,
+        pub boxes: Vec<DetectBox2D>,
+    }
+    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    pub struct DetectBox2D {
+        pub center_x: f32,
+        pub center_y: f32,
+        pub width: f32,
+        pub height: f32,
+        pub label: String,
+        pub score: f32,
+        pub distance: f32,
+        pub speed: f32,
+        pub is_tracked: bool,
+        pub track: DetectTrack,
+    }
+    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    pub struct DetectTrack {
+        pub id: String,
+        pub lifetime: i32,
+        pub created: Time,
+    }
+
     extern "Rust" {
         // Functions implemented in Rust.
         unsafe fn deserialize_compressed_image(bytes: *const u8, len: usize) -> CompressedImage;
@@ -182,8 +211,8 @@ mod ffi {
             bytes: *const u8,
             len: usize,
         ) -> FoxgloveImageAnnotations;
-
         unsafe fn deserialize_camera_info(bytes: *const u8, len: usize) -> CameraInfo;
+        unsafe fn deserialize_detect_boxes_2d(bytes: *const u8, len: usize) -> DetectBoxes2D;
 
         // Zero or more opaque types which both languages can pass around
         // but only Rust can see the fields.
@@ -230,6 +259,11 @@ unsafe fn deserialize_image_annotations(bytes: *const u8, len: usize) -> Foxglov
 unsafe fn deserialize_camera_info(bytes: *const u8, len: usize) -> CameraInfo {
     let slice = slice_from_raw_parts(bytes, len);
     cdr::deserialize::<CameraInfo>(unsafe { &*slice }).unwrap()
+}
+
+unsafe fn deserialize_detect_boxes_2d(bytes: *const u8, len: usize) -> DetectBoxes2D {
+    let slice = slice_from_raw_parts(bytes, len);
+    cdr::deserialize::<DetectBoxes2D>(unsafe { &*slice }).unwrap()
 }
 
 struct Sub<'a> {
