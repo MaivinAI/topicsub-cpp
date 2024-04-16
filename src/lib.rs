@@ -247,12 +247,8 @@ unsafe fn create_zenoh_ctx<'a>() -> Box<ZenohContext<'a>> {
     let mode = WhatAmI::Client;
     config.set_mode(Some(mode)).unwrap();
     config.connect.endpoints = vec![EndPoint::from_str("tcp/127.0.0.1:7447").unwrap()];
-    let _ = config.scouting.multicast.set_enabled(Some(true));
-    let _ = config
-        .scouting
-        .multicast
-        .set_interface(Some("lo".to_string()));
-    let _ = config.scouting.gossip.set_enabled(Some(true));
+    let _ = config.scouting.multicast.set_enabled(Some(false));
+    let _ = config.scouting.gossip.set_enabled(Some(false));
 
     let session = zenoh::open(config).res_sync().unwrap();
     return Box::new(ZenohContext {
