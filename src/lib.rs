@@ -1,7 +1,7 @@
 use crate::ffi::CameraInfo;
 use crate::ffi::CompressedImage;
 use crate::ffi::DeepviewDMABuf;
-use crate::ffi::DetectBoxes2D;
+use crate::ffi::Detect;
 use crate::ffi::FoxgloveImageAnnotations;
 use crate::ffi::PointCloud2;
 use crate::ffi::Response;
@@ -175,7 +175,7 @@ mod ffi {
     }
 
     #[derive(Serialize, Deserialize, PartialEq, Clone)]
-    pub struct DetectBoxes2D {
+    pub struct Detect {
         pub header: Header,
         pub input_timestamp: Time,
         pub model_time: Time,
@@ -211,7 +211,7 @@ mod ffi {
             len: usize,
         ) -> FoxgloveImageAnnotations;
         unsafe fn deserialize_camera_info(bytes: *const u8, len: usize) -> CameraInfo;
-        unsafe fn deserialize_detect_boxes_2d(bytes: *const u8, len: usize) -> DetectBoxes2D;
+        unsafe fn deserialize_detect(bytes: *const u8, len: usize) -> Detect;
 
         // Zero or more opaque types which both languages can pass around
         // but only Rust can see the fields.
@@ -260,9 +260,9 @@ unsafe fn deserialize_camera_info(bytes: *const u8, len: usize) -> CameraInfo {
     cdr::deserialize::<CameraInfo>(unsafe { &*slice }).unwrap()
 }
 
-unsafe fn deserialize_detect_boxes_2d(bytes: *const u8, len: usize) -> DetectBoxes2D {
+unsafe fn deserialize_detect(bytes: *const u8, len: usize) -> Detect {
     let slice = slice_from_raw_parts(bytes, len);
-    cdr::deserialize::<DetectBoxes2D>(unsafe { &*slice }).unwrap()
+    cdr::deserialize::<Detect>(unsafe { &*slice }).unwrap()
 }
 
 struct Sub<'a> {
