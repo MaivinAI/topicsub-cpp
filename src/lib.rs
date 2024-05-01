@@ -1,10 +1,12 @@
 use crate::ffi::CameraInfo;
 use crate::ffi::CompressedImage;
 use crate::ffi::DeepviewDMABuf;
+use crate::ffi::Detect;
 use crate::ffi::FoxgloveImageAnnotations;
 use crate::ffi::PointCloud2;
 use crate::ffi::Response;
 use cdr;
+use ffi::ModelInfo;
 use std::collections::HashMap;
 use std::ptr::slice_from_raw_parts;
 use std::str::FromStr;
@@ -173,6 +175,46 @@ mod ffi {
         pub do_rectify: bool,
     }
 
+    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    pub struct Detect {
+        pub header: Header,
+        pub input_timestamp: Time,
+        pub model_time: Time,
+        pub output_time: Time,
+        pub boxes: Vec<DetectBox2D>,
+    }
+    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    pub struct DetectBox2D {
+        pub center_x: f32,
+        pub center_y: f32,
+        pub width: f32,
+        pub height: f32,
+        pub label: String,
+        pub score: f32,
+        pub distance: f32,
+        pub speed: f32,
+        pub track: DetectTrack,
+    }
+    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    pub struct DetectTrack {
+        pub id: String,
+        pub lifetime: i32,
+        pub created: Time,
+    }
+
+    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    pub struct ModelInfo {
+        pub header: Header,
+        pub input_shape: Vec<u32>,
+        pub input_type: u8,
+        pub output_shape: Vec<u32>,
+        pub output_type: u8,
+        pub labels: Vec<String>,
+        pub model_type: String,
+        pub model_format: String,
+        pub model_name: String,
+    }
+
     extern "Rust" {
         // Functions implemented in Rust.
         unsafe fn deserialize_compressed_image(bytes: *const u8, len: usize) -> CompressedImage;
@@ -182,9 +224,9 @@ mod ffi {
             bytes: *const u8,
             len: usize,
         ) -> FoxgloveImageAnnotations;
-
         unsafe fn deserialize_camera_info(bytes: *const u8, len: usize) -> CameraInfo;
-
+        unsafe fn deserialize_detect(bytes: *const u8, len: usize) -> Detect;
+        unsafe fn deserialize_model_info(bytes: *const u8, len: usize) -> ModelInfo;
         // Zero or more opaque types which both languages can pass around
         // but only Rust can see the fields.
         type ZenohContext<'a>;
@@ -230,6 +272,16 @@ unsafe fn deserialize_image_annotations(bytes: *const u8, len: usize) -> Foxglov
 unsafe fn deserialize_camera_info(bytes: *const u8, len: usize) -> CameraInfo {
     let slice = slice_from_raw_parts(bytes, len);
     cdr::deserialize::<CameraInfo>(unsafe { &*slice }).unwrap()
+}
+
+unsafe fn deserialize_detect(bytes: *const u8, len: usize) -> Detect {
+    let slice = slice_from_raw_parts(bytes, len);
+    cdr::deserialize::<Detect>(unsafe { &*slice }).unwrap()
+}
+
+unsafe fn deserialize_model_info(bytes: *const u8, len: usize) -> ModelInfo {
+    let slice = slice_from_raw_parts(bytes, len);
+    cdr::deserialize::<ModelInfo>(unsafe { &*slice }).unwrap()
 }
 
 struct Sub<'a> {
