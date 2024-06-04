@@ -7,6 +7,7 @@ use crate::ffi::PointCloud2;
 use crate::ffi::Response;
 use cdr;
 use ffi::ModelInfo;
+use ffi::RadarCube;
 use std::collections::HashMap;
 use std::ptr::slice_from_raw_parts;
 use std::str::FromStr;
@@ -18,31 +19,32 @@ use zenoh::{
 #[cxx::bridge]
 mod ffi {
     // Any shared structs, whose fields will be visible to both languages.
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     struct Response {
         count: i64,
         data: Vec<u8>,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct Time {
         pub sec: i32,
         pub nanosec: u32,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct Header {
         pub stamp: Time,
         pub frame_id: String,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct CompressedImage {
         pub header: Header,
         pub format: String,
         pub data: Vec<u8>,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct PointCloud2 {
         pub header: Header,
         pub height: u32,
@@ -67,7 +69,7 @@ mod ffi {
     //     pub const FLOAT64: u8 = 8;
     // }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct PointField {
         pub name: String,
         pub offset: u32,
@@ -75,7 +77,7 @@ mod ffi {
         pub count: u32,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct DeepviewDMABuf {
         pub header: Header,
         pub src_pid: u32,
@@ -87,7 +89,7 @@ mod ffi {
         pub length: u32,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct FoxgloveImageAnnotations {
         pub circles: Vec<FoxgloveCircleAnnotations>,
         pub points: Vec<FoxglovePointAnnotations>,
@@ -107,7 +109,7 @@ mod ffi {
     //     pub const LINE_LIST: u8 = 4;
     // }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct FoxgloveCircleAnnotations {
         pub timestamp: Time,
         pub position: FoxglovePoint2,
@@ -117,7 +119,7 @@ mod ffi {
         pub outline_color: FoxgloveColor,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct FoxglovePointAnnotations {
         pub timestamp: Time,
         pub type_: u8,
@@ -128,7 +130,7 @@ mod ffi {
         pub thickness: f64,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct FoxgloveTextAnnotations {
         pub timestamp: Time,
         pub position: FoxglovePoint2,
@@ -138,13 +140,13 @@ mod ffi {
         pub background_color: FoxgloveColor,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct FoxglovePoint2 {
         pub x: f64,
         pub y: f64,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct FoxgloveColor {
         pub r: f64,
         pub g: f64,
@@ -152,7 +154,7 @@ mod ffi {
         pub a: f64,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct CameraInfo {
         pub header: Header,
         pub height: u32,
@@ -166,7 +168,7 @@ mod ffi {
         pub binning_y: u32,
         pub roi: RegionOfInterest,
     }
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct RegionOfInterest {
         pub x_offset: u32,
         pub y_offset: u32,
@@ -175,7 +177,7 @@ mod ffi {
         pub do_rectify: bool,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct Detect {
         pub header: Header,
         pub input_timestamp: Time,
@@ -183,7 +185,7 @@ mod ffi {
         pub output_time: Time,
         pub boxes: Vec<DetectBox2D>,
     }
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct DetectBox2D {
         pub center_x: f32,
         pub center_y: f32,
@@ -195,14 +197,14 @@ mod ffi {
         pub speed: f32,
         pub track: DetectTrack,
     }
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct DetectTrack {
         pub id: String,
         pub lifetime: i32,
         pub created: Time,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
     pub struct ModelInfo {
         pub header: Header,
         pub input_shape: Vec<u32>,
@@ -213,6 +215,45 @@ mod ffi {
         pub model_type: String,
         pub model_format: String,
         pub model_name: String,
+    }
+
+    // /// Dimensional labels are used to describe the radar cube layout. Not all cubes
+    // /// include every label.  Undefined is used for dimensions not covered by this
+    // /// list.  For example the Raivin radar cube is in the sequence, range,
+    // /// rxchannel, and doppler dimensions.  These labels can be used so applications
+    // /// can interpret the radar cube data genericly and portably between different
+    // /// radar modules.
+    // pub mod radar_cube_dimension {
+    //     pub const UNDEFINED: u8 = 0;
+    //     pub const RANGE: u8 = 1;
+    //     pub const DOPPLER: u8 = 2;
+    //     pub const AZIMUTH: u8 = 3;
+    //     pub const ELEVATION: u8 = 4;
+    //     pub const RXCHANNEL: u8 = 5;
+    //     pub const SEQUENCE: u8 = 6;
+    // }
+
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
+    pub struct RadarCube {
+        /// Message header containing the timestamp and frame id.
+        pub header: Header,
+        /// The timestamp of the radar cube data as generated by the radar module.
+        pub timestamp: u64,
+        /// The layout of the radar cube.  The layout is a vector of dimension labels
+        /// that describe the order of the dimensions in the cube.  The labels are
+        /// defined in the radar_cube_dimension module.
+        pub layout: Vec<u8>,
+        /// The shape of the radar cube.
+        pub shape: Vec<u16>,
+        /// The scales vector is used to convert the cube bins to physical units.
+        pub scales: Vec<f32>,
+        /// The radar cube data.  The cube is represented as a 3D array of signed
+        /// 16-bit integers.  If the cube is complex as indicated by the is_complex
+        /// field, then the elements should be interpred as pairs of real and
+        /// imaginary values.
+        pub cube: Vec<i16>,
+        /// The cube uses complex numbers if true.
+        pub is_complex: bool,
     }
 
     extern "Rust" {
@@ -227,6 +268,7 @@ mod ffi {
         unsafe fn deserialize_camera_info(bytes: *const u8, len: usize) -> CameraInfo;
         unsafe fn deserialize_detect(bytes: *const u8, len: usize) -> Detect;
         unsafe fn deserialize_model_info(bytes: *const u8, len: usize) -> ModelInfo;
+        unsafe fn deserialize_radar_cube(bytes: *const u8, len: usize) -> RadarCube;
         // Zero or more opaque types which both languages can pass around
         // but only Rust can see the fields.
         type ZenohContext<'a>;
@@ -282,6 +324,11 @@ unsafe fn deserialize_detect(bytes: *const u8, len: usize) -> Detect {
 unsafe fn deserialize_model_info(bytes: *const u8, len: usize) -> ModelInfo {
     let slice = slice_from_raw_parts(bytes, len);
     cdr::deserialize::<ModelInfo>(unsafe { &*slice }).unwrap()
+}
+
+unsafe fn deserialize_radar_cube(bytes: *const u8, len: usize) -> RadarCube {
+    let slice = slice_from_raw_parts(bytes, len);
+    cdr::deserialize::<RadarCube>(unsafe { &*slice }).unwrap()
 }
 
 struct Sub<'a> {
