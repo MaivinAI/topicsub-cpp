@@ -6,6 +6,7 @@ use crate::ffi::FoxgloveImageAnnotations;
 use crate::ffi::PointCloud2;
 use crate::ffi::Response;
 use cdr;
+use ffi::Model;
 use ffi::ModelInfo;
 use ffi::RadarCube;
 use std::collections::HashMap;
@@ -35,6 +36,12 @@ mod ffi {
     pub struct Header {
         pub stamp: Time,
         pub frame_id: String,
+    }
+
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
+    pub struct Duration {
+        pub sec: i32,
+        pub nanosec: u32,
     }
 
     #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
@@ -256,6 +263,43 @@ mod ffi {
         pub is_complex: bool,
     }
 
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
+    pub struct Mask {
+        /// The height of the mask, 0 if this dimension is unused.
+        pub height: u32,
+        /// The width of the mask, 0 if this dimension is unused.
+        pub width: u32,
+        /// The length of the mask, 0 if this dimension is unused.  The length would
+        /// be used in 3D masks to represent the depth.  It could also be used for 2D
+        /// bird's eye view masks along with width instead of height (elevation).
+        pub length: u32,
+        /// The optional encoding for the mask (currently unused).
+        pub encoding: String,
+        /// The segmentation mask data.  The array should be reshaped according to the
+        /// height, width, and length dimensions.  The dimension order is row-major.
+        pub mask: Vec<u8>,
+    }
+
+    #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
+    pub struct Model {
+        /// Message header containing the timestamp and frame id.
+        pub header: Header,
+        /// Duration to load inputs into the model.
+        pub input_time: Duration,
+        /// Duration to run the model, not including input/output/decoding.
+        pub model_time: Duration,
+        /// Duration to read the outputs from the model.
+        pub output_time: Duration,
+        /// Duration to decode the outputs from the model, including nms and tracking.
+        pub decode_time: Duration,
+        /// Box detections from the model.  Empty if none detected or if model does
+        /// not support detection.
+        pub boxes: Vec<DetectBox2D>,
+        /// Segmentation masks from the model.  Empty array if model does not generate
+        /// masks.  Generally models will only generate a single mask if they do.
+        pub masks: Vec<Mask>,
+    }
+
     extern "Rust" {
         // Functions implemented in Rust.
         unsafe fn deserialize_compressed_image(bytes: *const u8, len: usize) -> CompressedImage;
@@ -269,6 +313,7 @@ mod ffi {
         unsafe fn deserialize_detect(bytes: *const u8, len: usize) -> Detect;
         unsafe fn deserialize_model_info(bytes: *const u8, len: usize) -> ModelInfo;
         unsafe fn deserialize_radar_cube(bytes: *const u8, len: usize) -> RadarCube;
+        unsafe fn deserialize_model(bytes: *const u8, len: usize) -> Model;
         // Zero or more opaque types which both languages can pass around
         // but only Rust can see the fields.
         type ZenohContext<'a>;
@@ -329,6 +374,11 @@ unsafe fn deserialize_model_info(bytes: *const u8, len: usize) -> ModelInfo {
 unsafe fn deserialize_radar_cube(bytes: *const u8, len: usize) -> RadarCube {
     let slice = slice_from_raw_parts(bytes, len);
     cdr::deserialize::<RadarCube>(unsafe { &*slice }).unwrap()
+}
+
+unsafe fn deserialize_model(bytes: *const u8, len: usize) -> Model {
+    let slice = slice_from_raw_parts(bytes, len);
+    cdr::deserialize::<Model>(unsafe { &*slice }).unwrap()
 }
 
 struct Sub<'a> {
